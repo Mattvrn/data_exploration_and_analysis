@@ -1,0 +1,120 @@
+## Install packages
+
+```{r}
+library(tidyverse)
+library(MASS)
+library(caret)
+library(ggplot2)
+library(RColorBrewer)
+library(patchwork)
+```
+
+
+## Import data and setting graphic settings
+
+```{r}
+sol_pow_gen = read.csv("sol_pow_gen.csv", sep = ",")
+
+mycol = brewer.pal(5, "Set1")
+  
+head(sol_pow_gen)
+```
+
+The goal is to introduce the nature of the data, including key descriptive statistics, and to then apply analytical tools. Our goal would be to predict the amount of power generated using all the other variables.
+
+## Data description
+
+At what time the data is being recorded ?
+```{r}
+table(sol_pow_gen$First.Hour.of.Period)
+table(sol_pow_gen$Year)
+sol_pow_gen$Month[1]
+sol_pow_gen$Month[length(sol_pow_gen$Month)]
+```
+We have data at 1, 4, 7, 10, 13, 16, 19 and 22 for all the days of the year. The time period is between september 2008 and october 2009
+
+
+Proportion of daylight in the data along with the proportion of sky covering in the data
+```{r}
+par(mfrow = c(1,2))
+pie(table(sol_pow_gen$Is.Daylight), border = "white", col = mycol, main = "Proportion of daylight \nin the data")
+pie(table(sol_pow_gen$Sky.Cover), border = "white", col = mycol, main = "Proportion of sky covering \nin the data")
+```
+
+
+For the average temperature in the day
+As it is in F°, we want to convert it to Celsius
+```{r}
+sol_pow_gen = read.csv("sol_pow_gen.csv", sep = ",") #to avoid modifying the column again and again
+sol_pow_gen$Average.Temperature..Day. = round((sol_pow_gen$Average.Temperature..Day. - 32) * (5/9), 2)
+```
+
+We then want to visualise it
+```{r}
+data_day = sol_pow_gen %>%
+  group_by(Year, Month, Day) %>%
+  summarise(avg_temp_day = first(Average.Temperature..Day.), avg_wind_day = first(Average.Wind.Speed..Day.), avg_humidity = mean(Relative.Humidity))
+
+data_day$Month = factor(data_day$Month, levels = c(9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8))
+
+ggplot(data = data_day, aes(x= Month, y = avg_temp_day, fill = Month)) +
+  geom_boxplot(alpha=0.3) +
+  labs(title = "Boxplots of temperatures per month", x = "Months", y = "Temperature in °C") +
+  theme(legend.position = "none")
+
+ggplot(data = data_day, aes(x= Month, y = avg_wind_day, fill = Month)) +
+  geom_boxplot(alpha=0.3) +
+  xlab("Months") +
+  ylab("Wind Speed") +
+  ggtitle("Boxplots of wind speed per month") +
+  theme(legend.position = "none")
+
+ggplot(data = data_day, aes(x= Month, y = avg_humidity, fill = Month)) +
+  geom_boxplot(alpha=0.3) +
+  xlab("Months") +
+  ylab("Relative Humidity") +
+  ggtitle("Boxplots of Relative humidity per month") +
+  theme(legend.position = "none")
+
+
+```
+
+Let's take a look at the variable of interest : the generated power
+```{r}
+ggplot(sol_pow_gen, aes(x = Power.Generated)) + 
+  geom_histogram(binwidth = 5000, color = "white", fill = mycol[2]) + 
+  labs(title = "Histogram for generated powers", x = "Power generated", y = "Count over hour period")
+```
+
+Using our results in Python, we know distance to solar and power generated are negatively correlated
+```{r}
+cor(sol_pow_gen$Distance.to.Solar.Noon, sol_pow_gen$Power.Generated)
+```
+
+We could try and make a linear regression, but as seen in Python, its not going to be relevant
+```{r}
+data_ord_dist = sol_pow_gen[order(sol_pow_gen$Distance.to.Solar.Noon),c(7,16)]
+
+ggplot(data = data_ord_dist, aes(Distance.to.Solar.Noon, Power.Generated)) +
+  geom_line(col = mycol[3]) + 
+  geom_smooth(method = "lm")
+
+
+linear_model = lm(data_ord_dist$Distance.to.Solar.Noon~data_ord_dist$Power.Generated)
+summary(linear_model)
+```
+
+
+Time series
+
+
+Trials and errors
+```{r}
+
+```
+
+
+
+
+
+
