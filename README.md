@@ -1,5 +1,5 @@
 # Solar_power_data_analysis
-Personal project
+Projet personnel
 
 La transition énergétique et la gestion de l'énergie représentent des enjeux sociétaux et actuels. 
 
