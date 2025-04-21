@@ -1,12 +1,10 @@
-# Solar_power_data_analysis
-Projet personnel
+Data analysis project
 
-La transition énergétique et la gestion de l'énergie représentent des enjeux sociétaux et actuels. 
+Passionné par les mathématiques et les sciences humaines, j’ai décidé d’orienter mon projet professionnel vers une expertise en sciences des données. 
+Je pense pouvoir m’épanouir au mieux et trouver du sens dans ma future vie professionnelle, en ayant la possibilité de mettre cette expertise au service de l’intérêt général/de travailler pour le bien commun.
 
-Par ailleurs, la transition numérique, les nouvelles technologies et la science des données constituent des leviers pour relever ces défis. 
+C’est pourquoi je m’oriente vers une application des sciences des données dans le secteur de l’énergie, ou bien celui des transports. 
 
-Aussi, je porte un fort intérêt pour tous ces domaines (science des données, énergie) ; et j'aimerais participer à l'effort collectif pour les accélerer, les améliorer. Mon objectif est de pouvoir travailler pour l'intérêt général, le service public.
+Ce projet a pour objectif de me familiariser avec des bases de données issues de ces domaines, de montrer ma motivation aux recruteurs, et aussi de donner une première idée des compétences que j’ai pu acquérir jusque là.
 
-C'est pourquoi je réalise ce petit projet, en autonomie (pas dans le cadre de mes cours), d'exploration et d'analyse d'une base de données sur la production d'énergie solaire.
-
-(Comme j'utilise des résultats de l'analyse Python dans R, je recommande de regarder les fichiers dans cette ordre. De plus, je n'ai pas encore terminé le projet, et j'espère pouvoir ajouter de la matière bientôt).
+Ce dossier repository contient deux dossiers : un pour l'analyse d'une base de données de Régularité mensuelle TER, trouvée sur le site opendata de SNCF ; l'autre pour l'analyse d'une base de données de production énergétique d'un parc solaire, trouvée sur Kaggle (références dans les dossiers). 
