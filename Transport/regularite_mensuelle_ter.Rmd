@@ -1,0 +1,200 @@
+# Data analysis of the data regularite-mensuelle-ter
+
+## Loading packages
+```{r}
+library(tidyverse)
+library(MASS)
+library(caret)
+library(ggplot2)
+library(RColorBrewer)
+library(corrplot)
+library(klaR)
+library(psych)
+library(devtools)
+library(patchwork)
+library(zoo)
+```
+
+## Import data and setting graphic settings
+
+```{r}
+url = "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/regularite-mensuelle-ter/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B"
+
+data = read.csv(url, sep = ";", header = TRUE)
+
+mycol = brewer.pal(5, "Set1")
+```
+
+## Data preparation
+```{r}
+#Removing missing values
+data = na.omit(data)
+
+#Renaming col
+colnames(data) = c("date", "region", "nbr_train_prog", "nbr_train_circ", "nbr_train_ann", "nbr_train_ret", "tx_reg", "prop", "comm")
+
+#Making the region as factors
+data$region = as.factor(data$region)
+
+#Making the date variable as date in R
+data$date = as.yearmon(data[,1], format = "%Y-%m")
+```
+
+## Data exploration
+```{r}
+#Overview of the data
+head(data)
+```
+
+```{r}
+#How much data per region?
+table(data$region)
+```
+
+```{r}
+#The boxplot for discrete variables
+discrete_var = colnames(data)[3:6]
+
+#We put the data in a form that is convenient for the boxplots
+data_train = stack(data[,3:4])
+data_train$ind = factor(data_train$ind, labels = c("Programmed trains", "Trains that ran"))
+
+data_late = stack(data[,5:6])
+data_late$ind = factor(data_late$ind, labels = c("Canceled trains", "Late trains"))
+
+#The boxplots
+ggplot(data_train, aes(x = ind, y = values, fill = ind)) +
+  geom_boxplot(alpha=0.5) +
+  theme_minimal() +
+  labs(title = "Boxplots for the discrete variables",
+       y = "Number of trains",
+       x = "",
+       fill = "Legend") 
+
+ggplot(data_late, aes(x = ind, y = values, fill = ind)) +
+  geom_boxplot(alpha=0.5) +
+  theme_minimal() +
+  labs(title = "Boxplots for the discrete variables",
+       y = "Number of trains",
+       x = "",
+       fill = "Train status") 
+```
+
+```{r}
+#Boxplot for the rates
+data_rate = data["tx_reg"]
+data_prop = data["prop"]
+
+g1 = ggplot(data_rate, aes(y = tx_reg)) +
+  geom_boxplot(alpha = 0.5, show.legend = FALSE, fill = "red") +
+  labs(title="Boxplot for the regularity rate per month",
+       y = "Rate") 
+
+g2 = ggplot(data_prop, aes(y = prop)) +
+geom_boxplot(alpha = 0.5, show.legend = FALSE, fill = "blue") +
+labs(title="Boxplot for the number of on time\ntrains per one late",
+     y = "Number of trains") 
+
+g1 + g2
+```
+
+```{r}
+#Regrouping the data to have numbers across all region per month
+train_prog = data %>%
+  group_by(date) %>%
+  summarize(train_prog = sum(nbr_train_prog))
+
+train_circ = data %>%
+  group_by(date) %>%
+  summarize(train_circ = sum(nbr_train_circ))
+```
+
+The graph
+```{r}
+#Points graph to visualize the difference between the trains that were programmed and the ones that ran
+ggplot(train_prog, aes(x=date, y=train_prog)) + 
+  geom_point(col = "blue") +
+  geom_point(data = train_circ, aes(x=date,y=train_circ), col = "red", pch=4, alpha=0.5) +
+  labs(title = "Number of trains programmed per month\nvs the ones that actually ran",
+       x = "Date",
+       y = "Number of trains") 
+```
+### For the PACA region 
+
+For the following, we will be focusing in the PACA region
+```{r}
+#Filter vector
+data_paca = data[data$region == "Provence Alpes Côte d'Azur",]
+data_paca = data_paca[,-2] #Removing the region column
+head(data_paca)
+```
+
+It could be interesting to investigate the mean number of late trains per year
+```{r}
+#Summing the data for each year of late trains for the paca region
+data_paca_year = data_paca %>%
+  group_by(year = lubridate::year(date)) %>%
+  summarize(nbr_train_prog = mean(nbr_train_prog), nrb_train_circ = mean(nbr_train_circ), nbr_train_ann = mean(nbr_train_ann), nbr_train_ret = mean(nbr_train_ret))
+  
+head(data_paca_year)
+```
+
+
+## Data analysis
+
+In this next section, I thought it could be interesting to perform an ANOVA to test whether the differences between the late trains of the years 2021 up to 2024 are significant
+
+To this end, we have to explicit our variables
+IV : independent variable => the year, qualitative ordinal variable (4 modalities : 2021, 2022, 2023, 2024)
+DV : dependent variable => number of late trains, quantitative discrete variable
+
+Null hypothesis H0 : there are no difference between the number of late trains of the years 2021 up to 2024
+Alternative hypothesis H1 : there is a difference between the number of late trains of the years 2021 up to 2024
+
+Before diving into the test, we have to curate our data
+```{r}
+#Keeping only the date in our data using year function of the lubricate package
+data_paca_aov = data.frame(date = year(data_paca$date), nbr_train_ret = data_paca$nbr_train_ret)
+data_paca_aov = data_paca_aov[order(data_paca_aov$date),]
+data_paca_aov = data_paca_aov[data_paca_aov$date>=2021,]
+head(data_paca_aov)
+```
+
+```{r}
+#All is done, we can do the anova
+anova = aov(data_paca_aov$nbr_train_ret~data_paca_aov$date)
+
+summary(anova) #according to this, the difference is very strongly significant
+```
+Residuals independence
+```{r}
+#visual checking of the absence of correlation
+plot(anova, 1) 
+```
+
+Normal distribution of the residuals
+```{r}
+#The residuals do not seem to be normally distributed (not following the line). Because the p value of the shapiro test is only a little below 0.05, we question the validity of our test
+plot(anova, 2) 
+shapiro.test(anova$residuals) 
+```
+Linear regression
+```{r}
+#Getting the linear regression from python, we want to know if the coefficients are significant to assess whether the regression is relevant or not
+#=>As we can see, the R2 coefficient is quite low, 0.3039, the regression might not be that relevant
+linear_reg_paca = lm(data_paca$nbr_train_prog~data_paca$nbr_train_ret)
+summary(linear_reg_paca)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
