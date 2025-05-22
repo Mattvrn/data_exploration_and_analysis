@@ -1,7 +1,7 @@
 Data analysis project
 
 Passionné par les mathématiques et les sciences humaines, j’ai décidé d’orienter mon projet professionnel vers une expertise en sciences des données. 
-Je pense pouvoir m’épanouir au mieux et trouver du sens dans ma future vie professionnelle, en ayant la possibilité de mettre cette expertise au service de l’intérêt général/de travailler pour le bien commun.
+Je pense pouvoir m’épanouir au mieux et trouver du sens dans ma future vie professionnelle ; en ayant la possibilité de mettre cette expertise au service de l’intérêt général/de travailler pour le bien commun.
 
 C’est pourquoi je m’orienterais idéalement vers une application des sciences des données dans le secteur de l’énergie, ou bien celui des transports. 
 
